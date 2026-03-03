@@ -27,3 +27,20 @@ func New[T any](capacity int) *Ring[T] {
 		buf: make([]T, capacity),
 	}
 }
+
+// SetOnBeforeAdd sets the callback invoked before a value is added.
+// Returning false from fn prevents the value from being written.
+func (r *Ring[T]) SetOnBeforeAdd(fn func(T) bool) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	r.onBeforeAdd = fn
+}
+
+// SetOnRotate sets the callback invoked when the write index wraps back to zero.
+func (r *Ring[T]) SetOnRotate(fn func()) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	r.onRotate = fn
+}
