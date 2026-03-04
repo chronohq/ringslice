@@ -72,6 +72,17 @@ func (r *Ring[T]) Add(val T) {
 	}
 }
 
+// Clear wipes and resets the ring content.
+func (r *Ring[T]) Clear() {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	clear(r.buf)
+
+	r.count = 0
+	r.idx = 0
+}
+
 // All returns an iterator that yields each element in chronological order.
 func (r *Ring[T]) All() iter.Seq[T] {
 	return func(yield func(T) bool) {

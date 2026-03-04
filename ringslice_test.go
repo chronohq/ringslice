@@ -117,3 +117,31 @@ func TestAllDesc(t *testing.T) {
 		})
 	}
 }
+
+func TestClear(t *testing.T) {
+	ring := New[int](8)
+
+	for i := range ring.Cap() {
+		ring.Add(i)
+	}
+
+	if ring.Len() != ring.Cap() {
+		t.Errorf("got: %v, want: %v", ring.Len(), ring.Cap())
+		return
+	}
+
+	ring.Clear()
+
+	if ring.Len() != 0 {
+		t.Errorf("got: %v, want: %v", ring.Len(), 0)
+		return
+	}
+
+	want := 121
+	ring.Add(want)
+
+	if ring.buf[0] != want {
+		t.Errorf("got: %v, want: %v", ring.buf[0], want)
+		return
+	}
+}
