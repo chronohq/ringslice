@@ -1,0 +1,9 @@
+.PHONY: lint test
+
+lint:
+	go vet ./...
+	staticcheck ./...
+
+test: lint
+	go clean -testcache
+	go test -v ./...
