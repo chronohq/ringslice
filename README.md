@@ -51,7 +51,7 @@ ring.OnBeforeAdd(func(value string) bool {
 Called each time the write index wraps around the ring. Useful for logging, flushing, or instrumentation.
 
 ```go
-ring.OnRotate(func() {
+ring.OnRotate(func(values []string) {
     fmt.Println("lap complete 🏁")
 })
 ```

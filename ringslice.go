@@ -19,7 +19,7 @@ type Ring[T any] struct {
 	mu    sync.RWMutex
 
 	onBeforeAdd func(T) bool
-	onRotate    func()
+	onRotate    func([]T)
 }
 
 // New returns a new Ring with the given capacity.
@@ -40,8 +40,10 @@ func (r *Ring[T]) OnBeforeAdd(fn func(T) bool) {
 }
 
 // OnRotate registers a callback invoked when the write index wraps back
-// to zero. fn must not call any methods on the same Ring instance.
-func (r *Ring[T]) OnRotate(fn func()) {
+// to zero. fn receives the underlying slice of the ring buffer, thus it
+// must not mutate or retain the slice beyond the duration of the call.
+// fn must not call any methods on the same Ring instance.
+func (r *Ring[T]) OnRotate(fn func([]T)) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -69,7 +71,7 @@ func (r *Ring[T]) Add(val T) {
 		r.idx = 0
 
 		if r.onRotate != nil {
-			r.onRotate()
+			r.onRotate(r.buf)
 		}
 	}
 }
