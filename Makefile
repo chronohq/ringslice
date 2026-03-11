@@ -1,4 +1,4 @@
-.PHONY: lint test
+.PHONY: lint test benchmark
 
 lint:
 	go vet ./...
@@ -7,3 +7,6 @@ lint:
 test: lint
 	go clean -testcache
 	go test -v ./...
+
+benchmark: lint
+	go test -v -bench=. -benchmem -run=^# -cpu=1,2,4,8 ./...
