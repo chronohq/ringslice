@@ -29,8 +29,9 @@ func New[T any](capacity int) *Ring[T] {
 	}
 }
 
-// OnBeforeAdd registers the callback invoked before a value is added.
+// OnBeforeAdd registers a callback invoked before a value is added.
 // Returning false from fn prevents the value from being written.
+// fn must not call any methods on the same Ring instance.
 func (r *Ring[T]) OnBeforeAdd(fn func(T) bool) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -38,7 +39,8 @@ func (r *Ring[T]) OnBeforeAdd(fn func(T) bool) {
 	r.onBeforeAdd = fn
 }
 
-// OnRotate registers the callback invoked when the write index wraps back to zero.
+// OnRotate registers a callback invoked when the write index wraps back
+// to zero. fn must not call any methods on the same Ring instance.
 func (r *Ring[T]) OnRotate(fn func()) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
