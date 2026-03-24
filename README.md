@@ -56,6 +56,20 @@ ring.OnRotate(func(values []string) {
 })
 ```
 
+### OnFlush
+
+Called by `Flush()` before the buffer is cleared. Useful for draining the buffer, persisting elements, or instrumentation.
+
+```go
+ring.OnFlush(func(values []string) {
+    for _, v := range values {
+        db.Insert(v)
+    }
+})
+```
+
+Note: `Clear()` discards all elements without invoking this callback.
+
 ## Concurrency Model
 
 Ringslice uses a read-write lock to allow multiple concurrent readers while serializing writers.

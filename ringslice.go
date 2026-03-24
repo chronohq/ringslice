@@ -19,6 +19,7 @@ type Ring[T any] struct {
 	mu    sync.RWMutex
 
 	onBeforeAdd func(T) bool
+	onFlush     func([]T)
 	onRotate    func([]T)
 }
 
@@ -48,6 +49,17 @@ func (r *Ring[T]) OnRotate(fn func([]T)) {
 	defer r.mu.Unlock()
 
 	r.onRotate = fn
+}
+
+// OnFlush registers a callback invoked by Flush() before the buffer is cleared.
+// fn receives the underlying slice of the ring buffer, thus it must not mutate
+// or retain the slice beyond the duration of the call. fn must not call any
+// methods on the same Ring instance.
+func (r *Ring[T]) OnFlush(fn func([]T)) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	r.onFlush = fn
 }
 
 // Add writes the given value to the ring.
@@ -89,6 +101,10 @@ func (r *Ring[T]) Clear() {
 func (r *Ring[T]) Flush() {
 	r.mu.Lock()
 	defer r.mu.Unlock()
+
+	if r.onFlush != nil {
+		r.onFlush(r.buf)
+	}
 
 	r.resetBuffer()
 }

@@ -148,3 +148,86 @@ func TestClear(t *testing.T) {
 		return
 	}
 }
+
+func TestClearSkipsOnFlush(t *testing.T) {
+	ring := New[int](8)
+
+	for i := range ring.Cap() {
+		ring.Add(i)
+	}
+
+	called := false
+
+	ring.OnFlush(func(values []int) {
+		called = true
+	})
+
+	ring.Clear()
+
+	if called {
+		t.Errorf("got: %v, want: false", called)
+	}
+}
+
+func TestFlush(t *testing.T) {
+	tests := []struct {
+		name     string
+		capacity int
+		onFlush  func([]int)
+		want     int
+	}{
+		{
+			name:     "without onFlush callback",
+			capacity: 8,
+			onFlush:  nil,
+			want:     0,
+		},
+		{
+			name:     "with onFlush callback",
+			capacity: 8,
+			onFlush:  func(p []int) {},
+			want:     0,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ring := New[int](test.capacity)
+			ring.OnFlush(test.onFlush)
+
+			for i := range ring.Cap() {
+				ring.Add(i)
+			}
+
+			ring.Flush()
+
+			if ring.Len() != test.want {
+				t.Errorf("got: %v, want: %v", ring.Len(), test.want)
+			}
+		})
+	}
+
+}
+
+func TestOnFlush(t *testing.T) {
+	t.Run("invokes the onFlush callback", func(t *testing.T) {
+		ring := New[int](8)
+
+		for i := range ring.Cap() {
+			ring.Add(i)
+		}
+
+		var got []int
+		var want = []int{0, 1, 2, 3, 4, 5, 6, 7}
+
+		ring.OnFlush(func(values []int) {
+			got = append(got, values...)
+		})
+
+		ring.Flush()
+
+		if !slices.Equal(got, want) {
+			t.Errorf("got: %v, want: %v", got, want)
+		}
+	})
+}
