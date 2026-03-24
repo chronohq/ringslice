@@ -76,15 +76,21 @@ func (r *Ring[T]) Add(val T) {
 	}
 }
 
-// Clear wipes and resets the ring content.
+// Clear resets the ring buffer, discarding all elements.
 func (r *Ring[T]) Clear() {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	clear(r.buf)
+	r.resetBuffer()
+}
 
-	r.count = 0
-	r.idx = 0
+// Flush resets the ring buffer, discarding all elements. If an OnFlush
+// callback is registered, it is invoked before the buffer is cleared.
+func (r *Ring[T]) Flush() {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	r.resetBuffer()
 }
 
 // All returns an iterator that yields each element in chronological order.
@@ -139,6 +145,12 @@ func (r *Ring[T]) Cap() int {
 	defer r.mu.RUnlock()
 
 	return cap(r.buf)
+}
+
+func (r *Ring[T]) resetBuffer() {
+	clear(r.buf)
+	r.count = 0
+	r.idx = 0
 }
 
 func (r *Ring[T]) rotated() bool {
