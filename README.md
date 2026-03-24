@@ -4,9 +4,15 @@
 [![go reference](https://pkg.go.dev/badge/github.com/chronohq/ringslice.svg)](https://pkg.go.dev/github.com/chronohq/ringslice)
 [![mit license](https://img.shields.io/badge/license-MIT-green)](/LICENSE)
 
-Ringslice is a type-safe generic ring buffer backed by a Go slice, featuring `iter.Seq` iteration and zero-allocation performance. It includes lifecycle callbacks designed for production use cases.
+Ringslice is a type-safe generic ring buffer backed by a Go slice, designed for
+production use cases like sliding window and streaming workloads.
 
-For a traditional circular doubly-linked list, see Go's standard [container/ring](https://pkg.go.dev/container/ring) package.
+Most ring buffer implementations focus on storage. Ringslice adds lifecycle hooks
+so you can react to what happens as data moves through the buffer.
+It also features `iter.Seq` iteration for idiomatic Go range support.
+
+For pointer-based circular lists and round-robin traversal, see Go’s standard
+[container/ring](https://pkg.go.dev/container/ring).
 
 ## Basic Usage
 
