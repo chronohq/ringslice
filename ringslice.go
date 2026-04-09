@@ -109,6 +109,22 @@ func (r *Ring[T]) Flush() {
 	r.resetBuffer()
 }
 
+// Peek returns the most recently added item without consuming it.
+// Returns the zero value and false if the ring buffer is empty.
+func (r *Ring[T]) Peek() (T, bool) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	if r.count == 0 {
+		return *new(T), false
+	}
+
+	// add len(r.buf) before the modulo to guard against when r.idx == 0
+	idx := (r.idx - 1 + len(r.buf)) % len(r.buf)
+
+	return r.buf[idx], true
+}
+
 // All returns an iterator that yields each element in chronological order.
 func (r *Ring[T]) All() iter.Seq[T] {
 	return func(yield func(T) bool) {

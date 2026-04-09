@@ -8,6 +8,58 @@ import (
 	"testing"
 )
 
+func TestPeek(t *testing.T) {
+	tests := []struct {
+		name     string
+		capacity int
+		numElems int
+		want     int
+		wantOK   bool
+	}{
+		{
+			name:     "with empty ring buffer",
+			capacity: 8,
+			numElems: 0,
+			want:     0,
+			wantOK:   false,
+		},
+		{
+			name:     "with populated ring buffer",
+			capacity: 8,
+			numElems: 3,
+			want:     2,
+			wantOK:   true,
+		},
+		{
+			name:     "with rotated ring buffer",
+			capacity: 8,
+			numElems: 10,
+			want:     9,
+			wantOK:   true,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ring := New[int](test.capacity)
+
+			for i := range test.numElems {
+				ring.Add(i)
+			}
+
+			got, ok := ring.Peek()
+
+			if ok != test.wantOK {
+				t.Errorf("got: %v, want: %v", ok, test.wantOK)
+			}
+
+			if got != test.want {
+				t.Errorf("got: %v, want: %v", got, test.want)
+			}
+		})
+	}
+}
+
 func TestAdd(t *testing.T) {
 	tests := []struct {
 		name     string
