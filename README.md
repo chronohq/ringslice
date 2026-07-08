@@ -76,6 +76,24 @@ ring.OnFlush(func(values []string) {
 
 Note: `Clear()` discards all elements without invoking this callback.
 
+## Serialization
+
+Ringslice implements the `json.Marshaler` interface, allowing you to serialize the buffer directly with `json.Marshal()`.
+
+```go
+ring := ringslice.New[int](8)
+
+ring.Add(1)
+ring.Add(2)
+ring.Add(3)
+
+buf, err := json.Marshal(ring)
+```
+
+This functionality is useful when you want to persist the ring buffer,
+even though ringslice is inherently volatile. The serialized output
+preserves insertion order regardless of internal buffer rotation.
+
 ## Concurrency Model
 
 Ringslice uses a read-write lock to allow multiple concurrent readers while serializing writers.

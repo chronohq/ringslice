@@ -6,6 +6,7 @@
 package ringslice
 
 import (
+	"encoding/json"
 	"iter"
 	"sync"
 )
@@ -177,6 +178,23 @@ func (r *Ring[T]) Cap() int {
 	defer r.mu.RUnlock()
 
 	return cap(r.buf)
+}
+
+func (r *Ring[T]) MarshalJSON() ([]byte, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	// determine the actual count of items in the ring
+	n := min(r.count, len(r.buf))
+
+	items := make([]T, n)
+	start := r.startIdx()
+
+	for i := range n {
+		items[i] = r.buf[(start+i)%len(r.buf)]
+	}
+
+	return json.Marshal(items)
 }
 
 func (r *Ring[T]) resetBuffer() {

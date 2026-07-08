@@ -4,6 +4,7 @@
 package ringslice
 
 import (
+	"encoding/json"
 	"slices"
 	"testing"
 )
@@ -282,4 +283,65 @@ func TestOnFlush(t *testing.T) {
 			t.Errorf("got: %v, want: %v", got, want)
 		}
 	})
+}
+
+func TestMarshalJSON(t *testing.T) {
+	tests := []struct {
+		name     string
+		capacity int
+		numElems int
+		want     []int
+	}{
+		{
+			name:     "with empty ring buffer",
+			capacity: 8,
+			numElems: 0,
+			want:     []int{},
+		},
+		{
+			name:     "with less elements than capacity",
+			capacity: 8,
+			numElems: 6,
+			want:     []int{0, 1, 2, 3, 4, 5},
+		},
+		{
+			name:     "with elements equal capacity",
+			capacity: 8,
+			numElems: 8,
+			want:     []int{0, 1, 2, 3, 4, 5, 6, 7},
+		},
+		{
+			name:     "with more elements than capacity",
+			capacity: 8,
+			numElems: 12,
+			want:     []int{4, 5, 6, 7, 8, 9, 10, 11},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ring := New[int](test.capacity)
+
+			for i := range test.numElems {
+				ring.Add(i)
+			}
+
+			// calls the underlying ring.MarshalJSON()
+			b, err := json.Marshal(ring)
+
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			var got []int
+
+			if err := json.Unmarshal(b, &got); err != nil {
+				t.Fatal(err)
+			}
+
+			if !slices.Equal(got, test.want) {
+				t.Errorf("got: %v, want: %v", got, test.want)
+			}
+		})
+	}
 }
