@@ -94,6 +94,14 @@ This functionality is useful when you want to persist the ring buffer,
 even though ringslice is inherently volatile. The serialized output
 preserves insertion order regardless of internal buffer rotation.
 
+### Custom types
+
+When using custom structs as ring values, only exported fields are serialized.
+Unexported fields are lost during serialization and zero-initialized during
+deserialization. If your struct has unexported fields that must be persisted,
+implement `MarshalJSON()` and `UnmarshalJSON()` on that struct type to handle
+them explicitly.
+
 ## Concurrency Model
 
 Ringslice uses a read-write lock to allow multiple concurrent readers while serializing writers.

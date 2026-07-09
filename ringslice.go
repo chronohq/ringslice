@@ -180,6 +180,12 @@ func (r *Ring[T]) Cap() int {
 	return cap(r.buf)
 }
 
+type ringJSON[T any] struct {
+	Capacity int `json:"capacity"`
+	Items    []T `json:"items"`
+}
+
+// MarshalJSON implements the json.Marshaler interface.
 func (r *Ring[T]) MarshalJSON() ([]byte, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
@@ -187,14 +193,18 @@ func (r *Ring[T]) MarshalJSON() ([]byte, error) {
 	// determine the actual count of items in the ring
 	n := min(r.count, len(r.buf))
 
-	items := make([]T, n)
+	data := ringJSON[T]{
+		Capacity: len(r.buf),
+		Items:    make([]T, n),
+	}
+
 	start := r.startIdx()
 
 	for i := range n {
-		items[i] = r.buf[(start+i)%len(r.buf)]
+		data.Items[i] = r.buf[(start+i)%len(r.buf)]
 	}
 
-	return json.Marshal(items)
+	return json.Marshal(data)
 }
 
 func (r *Ring[T]) resetBuffer() {

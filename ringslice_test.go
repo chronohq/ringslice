@@ -333,14 +333,18 @@ func TestMarshalJSON(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			var got []int
+			var got ringJSON[int]
 
 			if err := json.Unmarshal(b, &got); err != nil {
 				t.Fatal(err)
 			}
 
-			if !slices.Equal(got, test.want) {
-				t.Errorf("got: %v, want: %v", got, test.want)
+			if got.Capacity != test.capacity {
+				t.Errorf("got: %v, want: %v", got.Capacity, test.capacity)
+			}
+
+			if !slices.Equal(got.Items, test.want) {
+				t.Errorf("got: %v, want: %v", got.Items, test.want)
 			}
 		})
 	}
