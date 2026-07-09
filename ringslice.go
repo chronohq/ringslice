@@ -207,6 +207,26 @@ func (r *Ring[T]) MarshalJSON() ([]byte, error) {
 	return json.Marshal(data)
 }
 
+// UnmarshalJSON implements the json.Unmarshaler interface.
+func (r *Ring[T]) UnmarshalJSON(data []byte) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	var buf ringJSON[T]
+
+	if err := json.Unmarshal(data, &buf); err != nil {
+		return err
+	}
+
+	r.count = len(buf.Items)
+	r.idx = r.count % buf.Capacity
+	r.buf = make([]T, buf.Capacity)
+
+	copy(r.buf, buf.Items)
+
+	return nil
+}
+
 func (r *Ring[T]) resetBuffer() {
 	clear(r.buf)
 	r.count = 0

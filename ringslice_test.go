@@ -349,3 +349,69 @@ func TestMarshalJSON(t *testing.T) {
 		})
 	}
 }
+
+func TestUnmarshalJSON(t *testing.T) {
+	tests := []struct {
+		name     string
+		capacity int
+		items    []int
+	}{
+		{
+			name:     "with empty ring buffer",
+			capacity: 8,
+			items:    []int{},
+		},
+		{
+			name:     "with less elements than capacity",
+			capacity: 8,
+			items:    []int{0, 1, 2, 3, 4, 5},
+		},
+		{
+			name:     "with elements equal capacity",
+			capacity: 8,
+			items:    []int{0, 1, 2, 3, 4, 5, 6, 7},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			original := ringJSON[int]{
+				Capacity: test.capacity,
+				Items:    test.items,
+			}
+
+			b, err := json.Marshal(original)
+
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			var ring Ring[int]
+
+			if err := json.Unmarshal(b, &ring); err != nil {
+				t.Fatal(err)
+			}
+
+			// verify capacity
+			if ring.Cap() != test.capacity {
+				t.Errorf("got: %v, want: %v", ring.Cap(), test.capacity)
+			}
+
+			// verify item count
+			if ring.Len() != len(test.items) {
+				t.Errorf("got: %v, want: %v", ring.Len(), len(test.items))
+			}
+
+			// verify items are in correct order
+			var got []int
+
+			for v := range ring.All() {
+				got = append(got, v)
+			}
+
+			if !slices.Equal(got, test.items) {
+				t.Errorf("got: %v, want: %v", got, test.items)
+			}
+		})
+	}
+}
